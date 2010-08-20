@@ -1,4 +1,6 @@
 <?php
+App::import('Core', 'Security');
+
 /** 
  * @author Cauan Cabral - cauan@radig.com.br
  *
@@ -6,13 +8,8 @@
  * @license MIT
  *
  * @package Radig
- * @subpackage L10n
- * 
- * Este behavior requer PHP versão >= 5.2.4
+ * @subpackage Validators
  */
-
-App::import('Core', 'Security');
-
 class PassValidatorBehavior extends ModelBehavior
 {
 	protected $model;
@@ -45,37 +42,59 @@ class PassValidatorBehavior extends ModelBehavior
 		);
 	}
 	
+	/**
+	 * 
+	 * @see libs/model/ModelBehavior::beforeValidate()
+	 */
 	public function beforeValidate(&$model)
 	{
+		parent::beforeValidate($model);
+		
 		$pass = $this->model->data[$this->model->name][$this->settings['fields']['password']];
 		
+		// caso haja um campo referente a confirmação de senha
 		if($this->settings['haveConfirm'])
 		{
+			// recupera o valor vindo do formulário
 			$confirm = $this->model->data[$this->model->name][$this->settings['fields']['confirm']];
 		}
+		// caso contrário
 		else
 		{
+			// seta um valor padrão
 			$confirm = null;
 		}
 		
+		// executa validação da senha
 		$success = $this->isValidPassword($pass, $confirm);
 		
+		
+		// caso haja alguma falha
 		if($success !== true)
 		{
+			// adiciona os erros encontrados no atributo validationErrors do modelo atual
 			$this->model->validationErrors = array_merge($this->model->validationErrors, $success);
 			
+			// caso a configuração force a limpeza dos valores (senha e confirmação)
 			if($this->settings['unsetInFailure'])
 			{
-				unset($this->model->data[$this->model->name][$this->settings['fields']['password']]);
-				unset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]);
+				if(isset($this->model->data[$this->model->name][$this->settings['fields']['password']]))
+					unset($this->model->data[$this->model->name][$this->settings['fields']['password']]);
+				
+				if(isset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]))
+					unset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]);
 			}
 		}
-		
-		parent::beforeValidate($model);
 		
 		return true;
 	}
 	
+	/**
+	 * Método responsável pela execução da validação, baseada nas configurações do behavior
+	 * 
+	 * @param string $pass
+	 * @param string $confirm
+	 */
 	public function isValidPassword($pass, $confirm = null)
 	{
 		$errors = array();
@@ -138,12 +157,16 @@ class PassValidatorBehavior extends ModelBehavior
 			}
 		}
 		
+		// caso não tenha sido encontrado nenhum erro
 		if(empty($errors))
 		{
+			// retorna true
 			return true;
 		}
+		// caso contrário
 		else
 		{
+			// retorna o array com os erros
 			return $errors;
 		}
 	}
