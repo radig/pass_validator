@@ -49,8 +49,16 @@ class PassValidatorBehavior extends ModelBehavior
 	public function beforeValidate(&$model)
 	{
 		parent::beforeValidate($model);
-		
-		$pass = $this->model->data[$this->model->name][$this->settings['fields']['password']];
+
+		if(isset($this->model->data[$this->model->name][$this->settings['fields']['password']]))
+		{
+			$pass = $this->model->data[$this->model->name][$this->settings['fields']['password']];
+		}
+		else
+		{
+			$pass = null;
+		}
+
 		
 		// caso haja um campo referente a confirmação de senha
 		if($this->settings['haveConfirm'] && isset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]))
