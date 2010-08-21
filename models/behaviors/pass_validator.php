@@ -68,7 +68,6 @@ class PassValidatorBehavior extends ModelBehavior
 		// executa validação da senha
 		$success = $this->isValidPassword($pass, $confirm);
 		
-		
 		// caso haja alguma falha
 		if($success !== true)
 		{
@@ -123,7 +122,6 @@ class PassValidatorBehavior extends ModelBehavior
 			}
 		}
 		
-		
 		// validações que dependem do campo de confirmação
 		if($this->settings['haveConfirm'])
 		{
@@ -132,19 +130,20 @@ class PassValidatorBehavior extends ModelBehavior
 			{
 				$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['confirm'];
 			}
-					
 			// valida o tamanho da senha, depende de acesso ao campo de confirmação
-			if(mb_strlen($confirm) < $this->settings['minLength'])
+			else if(mb_strlen($confirm) < $this->settings['minLength'])
 			{
 				$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['minLength'];
 			}
-			
-			$hash = Security::hash($confirm, null, true);
-			
-			// valida se o hash da senha é o mesmo da confirmação
-			if($pass != $hash)
+			else
 			{
-				$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['confirm'];
+				$hash = Security::hash($confirm, null, true);
+
+				// valida se o hash da senha é o mesmo da confirmação
+				if($pass != $hash)
+				{
+					$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['confirm'];
+				}
 			}
 		}
 		// caso o campo de senha não venha em hash, é possível usar o próprio campo
