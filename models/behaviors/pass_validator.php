@@ -53,7 +53,7 @@ class PassValidatorBehavior extends ModelBehavior
 		$pass = $this->model->data[$this->model->name][$this->settings['fields']['password']];
 		
 		// caso haja um campo referente a confirmação de senha
-		if($this->settings['haveConfirm'])
+		if($this->settings['haveConfirm'] && isset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]))
 		{
 			// recupera o valor vindo do formulário
 			$confirm = $this->model->data[$this->model->name][$this->settings['fields']['confirm']];
@@ -128,7 +128,7 @@ class PassValidatorBehavior extends ModelBehavior
 			// campo de confirmação esta vazio
 			if(empty($confirm))
 			{
-				$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['confirm'];
+				$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['required'];
 			}
 			// valida o tamanho da senha, depende de acesso ao campo de confirmação
 			else if(mb_strlen($confirm) < $this->settings['minLength'])

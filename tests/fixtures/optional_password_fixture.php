@@ -1,11 +1,11 @@
 <?php
-class BasicExampleFixture extends CakeTestFixture {
-	var $name = 'BasicExample';
+class OptionalPasswordFixture extends CakeTestFixture {
+	var $name = 'OptionalPassword';
 
 	var $fields = array(
 		'id' => array('type'=>'integer', 'key' => 'primary'),
 		'name' => array('type'=>'string', 'null' => false, 'default' => NULL),
-		'password' => array('type'=>'string', 'null' => false),
+		'password' => array('type'=>'string', 'null' => true),
 		'indexes' => array('PRIMARY' => array('column' => 'id', 'unique' => 1))
 	);
 
@@ -18,7 +18,7 @@ class BasicExampleFixture extends CakeTestFixture {
 		array(
 			'id'  => 2,
 			'name'  => 'tonho',
-			'password'  => 'sem_hash'
+			'password'  => null
 		)
 	);
 }
