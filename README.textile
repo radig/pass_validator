@@ -1,0 +1,29 @@
+h1. Plugin PassValidator para CakePHP
+
+Este plugin fornece rotinas para validação de senhas em sistemas que utilizam o AuthComponent como componente de autenticação.
+
+O plugin valida a senha enviada via formulário de adição de usuários, considerando os seguintes critérios:
+
+* A senha pode ser deixada em branco?
+* Existe um segundo campo de senha (confirmação)?
+** Ambos os campos possuem valores iguais?
+* A senha respeita o tamanho mínimo imposto?
+
+h2. Considerações
+
+* O Plugin consiste de um Behavior, que é executado no callback beforeValidate. Isso quer dizer que toda vez que uma entrada for inserida, ele passará pelo Behavior para avaliação.
+
+* O Behavior possuí algumas mensagens padrão para os erros encontrados. Essas mensagens podem ser traduzidas utilizando a extensão L10n do CakePHP.
+
+* Este plugin foi desenvolvido e testado com o CakePHP 1.3
+
+* Os testes unitários cobrem 100% do código, utilize-os para entender melhor o funcionamento do behavior.
+** No momento, 3 dos testes falham por um fator não dependente do behavior (testado usando PostgreSQL e PHP 5.3.3)
+
+h2. Licença
+
+O plugin PassValidator é Software Livre e gratuito, distribuido sob a licença MIT pela "Radig Soluções em TI":http://www.radig.com.br
+
+Isso significa que você pode baixar o código dele e utiliza-lo da forma que bem entender, porém deve manter o crédito aos autores originais.
+
+O PassValidator é distruído da forma que está, não contendo nenhum tipo garantia ou suporte implícito.
