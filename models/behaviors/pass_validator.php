@@ -23,6 +23,7 @@ class PassValidatorBehavior extends ModelBehavior
 				'password' => 'password',
 				'confirm' => 'password_confirm'
 			),
+			'preConditions' => array(),
 			'haveConfirm' => true,
 			'isSecurityPassword' => true,
 			'minLength' => 4,
@@ -49,6 +50,12 @@ class PassValidatorBehavior extends ModelBehavior
 	public function beforeValidate(&$model)
 	{
 		parent::beforeValidate($model);
+
+		if(!empty($this->settings['preConditions']) && is_array($this->settings['preConditions']))
+		{
+			if(!$this->evalConditions($this->settings['preConditions']))
+				return;
+		}
 
 		if(isset($this->model->data[$this->model->name][$this->settings['fields']['password']]))
 		{
@@ -175,6 +182,26 @@ class PassValidatorBehavior extends ModelBehavior
 		{
 			// retorna o array com os erros
 			return $errors;
+		}
+	}
+
+	/**
+	 * Avalia se uma determinada condição (passada no mesmo formato
+	 * do método find() ) é válida, comparando-a com os dados vindos
+	 * (ou seja, com os dados disponíveis em Model::data )
+	 *
+	 * @param array $conditions
+	 */
+	protected function evalConditions( $conditions )
+	{
+		foreach($conditions as $input => $value)
+		{
+			$field = explode('.', $input);
+
+			if($this->model->data[$field[0]][$field[1]] != $value)
+			{
+				return false;
+			}
 		}
 	}
 }
