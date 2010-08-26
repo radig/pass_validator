@@ -87,12 +87,12 @@ class PassValidatorTest extends CakeTestCase {
 		$this->BasicExample =& ClassRegistry::init('BasicExample');
 
 		$result = $this->BasicExample->find('first',
-			array('conditions' => array('id' => '1'))
+			array('conditions' => array('id' => '1000'))
 		);
-		
+	
 		$expected = array(
 			'BasicExample' => array(
-				'id' => 1,
+				'id' => 1000,
 				'name' => 'joao',
 				'password' => '40bd001563085fc35165329ea1ff5c5ecbdbbeef'
 			)
@@ -111,18 +111,18 @@ class PassValidatorTest extends CakeTestCase {
 		$this->BasicExample =& ClassRegistry::init('BasicExample');
 
 		$result = $this->BasicExample->find('all');
-
+		
 		$expected = array(
 			array(
 				'BasicExample' => array(
-					'id'  => 1,
+					'id'  => 1000,
 					'name'  => 'joao',
 					'password'  => '40bd001563085fc35165329ea1ff5c5ecbdbbeef'
 				),
 			),
 			array(
 				'BasicExample' => array(
-					'id'  => 2,
+					'id'  => 1001,
 					'name'  => 'tonho',
 					'password'  => 'sem_hash'
 				)
@@ -163,7 +163,7 @@ class PassValidatorTest extends CakeTestCase {
 		$this->BasicExample =& ClassRegistry::init('BasicExample');
 
 		$data = array(
-			'id' => 1,
+			'id' => 1000,
 			'name' => 'teste'
 		);
 

@@ -11,12 +11,12 @@ class BasicExampleFixture extends CakeTestFixture {
 
 	var $records = array(
 		array(
-			'id'  => 1,
+			'id'  => 1000,
 			'name'  => 'joao',
 			'password'  => '40bd001563085fc35165329ea1ff5c5ecbdbbeef'
 		),
 		array(
-			'id'  => 2,
+			'id'  => 1001,
 			'name'  => 'tonho',
 			'password'  => 'sem_hash'
 		)
