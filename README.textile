@@ -11,6 +11,8 @@ O plugin valida a senha enviada via formulário de adição de usuários, consid
 * A senha respeita a quantidade mínima de caracteres alfabeticos?
 * A senha respeita a quantidade mínima de caracteres numéricos?
 * A senha respeita a quantidade mínima de caracteres especiais (não alfanumericos)?
+* Existe alguma pré-condição para que haja validação (por exemplo, um tipo de usuário)?
+** A pré-condição é válida?
 
 h2. Considerações
 
