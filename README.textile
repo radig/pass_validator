@@ -8,6 +8,9 @@ O plugin valida a senha enviada via formulário de adição de usuários, consid
 * Existe um segundo campo de senha (confirmação)?
 ** Ambos os campos possuem valores iguais?
 * A senha respeita o tamanho mínimo imposto?
+* A senha respeita a quantidade mínima de caracteres alfabeticos?
+* A senha respeita a quantidade mínima de caracteres numéricos?
+* A senha respeita a quantidade mínima de caracteres especiais (não alfanumericos)?
 
 h2. Considerações
 
