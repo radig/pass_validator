@@ -186,6 +186,7 @@ class PassValidatorTest extends CakeTestCase {
 		$this->BasicExample =& ClassRegistry::init('BasicExample');
 
 		$data = array(
+			'id' => null,
 			'name' => 'teste',
 			'password_confirm' => '',
 			'password' => ''

@@ -61,7 +61,9 @@ class PassValidatorBehavior extends ModelBehavior
 		if(!empty($this->settings['preConditions']) && is_array($this->settings['preConditions']))
 		{
 			if(!$this->evalConditions($this->settings['preConditions']))
-				return;
+			{
+				return true;
+			}
 		}
 
 		if(isset($this->model->data[$this->model->name][$this->settings['fields']['password']]))
@@ -136,6 +138,13 @@ class PassValidatorBehavior extends ModelBehavior
 				return true;
 			}
 		}
+		else
+		{
+			if(empty($pass))
+			{
+				$errors[$this->settings['fields']['password']] = $this->settings['errors']['required'];
+			}
+		}
 		
 		// validações que dependem do campo de confirmação
 		if($this->settings['haveConfirm'])
@@ -170,7 +179,7 @@ class PassValidatorBehavior extends ModelBehavior
 		else if(!$this->settings['isSecurityPassword'])
 		{
 			$policyErrors = $this->validatePasswordPolicy($pass, $this->settings['fields']['password']);
-				
+
 			if($policyErrors !== true)
 			{
 				$errors = array_merge($errors, $policyErrors);
@@ -204,7 +213,7 @@ class PassValidatorBehavior extends ModelBehavior
 		{
 			$field = explode('.', $input);
 
-			if($this->model->data[$field[0]][$field[1]] != $value)
+			if(!isset($this->model->data[$field[0]][$field[1]]) || $this->model->data[$field[0]][$field[1]] != $value)
 			{
 				return false;
 			}
