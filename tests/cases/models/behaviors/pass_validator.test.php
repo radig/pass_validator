@@ -1,5 +1,4 @@
 <?php
-error_reporting(E_ALL);
 	
 App::import('Core', 'Security');
 App::import('Behavior', 'PassValidator');
