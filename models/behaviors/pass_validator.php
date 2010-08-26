@@ -136,15 +136,6 @@ class PassValidatorBehavior extends ModelBehavior
 				return true;
 			}
 		}
-		//caso não seja permitido
-		else
-		{
-			if(empty($pass))
-			{
-				$errors[$this->settings['fields']['password']] = $this->settings['errors']['required'];
-			}
-		}
-		
 		
 		// validações que dependem do campo de confirmação
 		if($this->settings['haveConfirm'])
@@ -218,6 +209,8 @@ class PassValidatorBehavior extends ModelBehavior
 				return false;
 			}
 		}
+
+		return true;
 	}
 
 	
@@ -271,6 +264,12 @@ class PassValidatorBehavior extends ModelBehavior
 			{
 				$errors[$field] = $this->settings['errors']['minSpecialChars'];
 			}
+		}
+
+		// valida se a senha está vazia (validação feita por último para sobreescrever outras msgs de erro)
+		if(empty($password))
+		{
+			$errors[$field] = $this->settings['errors']['required'];
 		}
 		
 		if(empty($errors))

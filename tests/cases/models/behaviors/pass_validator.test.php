@@ -1,5 +1,5 @@
 <?php
-	error_reporting(E_ALL);
+//error_reporting(E_ALL);
 	
 App::import('Core', 'Security');
 App::import('Behavior', 'PassValidator');
@@ -38,9 +38,23 @@ class PasswordPolicy extends CakeTestModel {
 		'PassValidator.PassValidator' => array(
 			'haveConfirm' => true,
 			'minLength'  => 5,
-			'minLetters' => 2,
+			'minAlpha' => 2,
 			'minNumbers' => 2,
 			'minSpecialChars' => 2
+		)
+	);
+}
+
+class User extends CakeTestModel {
+	public $name = 'User';
+
+	public $actsAs = array(
+		'PassValidator.PassValidator' => array(
+			'haveConfirm' => false,
+			'isSecurityPassword' => false,
+			'preConditions' => array(
+				'User.type' => 'admin',
+			)
 		)
 	);
 }
@@ -53,7 +67,8 @@ class PassValidatorTest extends CakeTestCase {
 		'plugin.pass_validator.basic_example',
 		'plugin.pass_validator.without_confirmation',
 		'plugin.pass_validator.optional_password',
-		'plugin.pass_validator.password_policy'
+		'plugin.pass_validator.password_policy',
+		'plugin.pass_validator.user'
 	);
 
 	public function startTest()
@@ -129,7 +144,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => Security::hash('1234', null, true)
 		);
 		
-		$result =  $this->BasicExample->save($data);
+		$result = $this->BasicExample->save($data);
 		
 		$expected = true;
 
@@ -152,7 +167,7 @@ class PassValidatorTest extends CakeTestCase {
 			'name' => 'teste'
 		);
 
-		$result =  $this->BasicExample->save($data);
+		$result = $this->BasicExample->save($data);
 
 		$expected = true;
 
@@ -176,7 +191,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => ''
 		);
 
-		$result =  $this->BasicExample->save($data);
+		$result = $this->BasicExample->save($data);
 
 		$expected = false;
 
@@ -204,7 +219,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => Security::hash('4321', null, true)
 		);
 
-		$result =  $this->BasicExample->save($data);
+		$result = $this->BasicExample->save($data);
 
 		$expected = false;
 
@@ -232,7 +247,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => Security::hash('123', null, true)
 		);
 
-		$result =  $this->BasicExample->save($data);
+		$result = $this->BasicExample->save($data);
 		
 		$expected = false;
 
@@ -259,7 +274,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => Security::hash('1234', null, true)
 		);
 
-		$result =  $this->BasicExample->save($data);
+		$result = $this->BasicExample->save($data);
 
 		$expected = false;
 
@@ -285,7 +300,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => '1234'
 		);
 
-		$result =  $this->WithoutConfirmation->save($data);
+		$result = $this->WithoutConfirmation->save($data);
 
 		$expected = true;
 
@@ -309,7 +324,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => '123'
 		);
 
-		$result =  $this->WithoutConfirmation->save($data);
+		$result = $this->WithoutConfirmation->save($data);
 
 		$expected = false;
 
@@ -333,7 +348,7 @@ class PassValidatorTest extends CakeTestCase {
 			'name' => 'teste'
 		);
 
-		$result =  $this->OptionalPassword->save($data);
+		$result = $this->OptionalPassword->save($data);
 
 		$expected = true;
 
@@ -357,7 +372,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => Security::hash('foobar', null, true)
 		);
 		
-		$result =  $this->PasswordPolicy->save($data);
+		$result = $this->PasswordPolicy->save($data);
 
 		$expected = false;
 
@@ -383,7 +398,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => Security::hash('123456', null, true)
 		);
 		
-		$result =  $this->PasswordPolicy->save($data);
+		$result = $this->PasswordPolicy->save($data);
 
 		$expected = false;
 
@@ -410,7 +425,7 @@ class PassValidatorTest extends CakeTestCase {
 			'password' => Security::hash('123foo', null, true)
 		);
 		
-		$result =  $this->PasswordPolicy->save($data);
+		$result = $this->PasswordPolicy->save($data);
 
 		$expected = false;
 
@@ -424,5 +439,53 @@ class PassValidatorTest extends CakeTestCase {
 		$this->assertEqual($emptyErrors, $expected);
 		
 		unset($this->PasswordPolicy);
+	}
+
+	public function testPreConditionSkip()
+	{
+		$this->User =& ClassRegistry::init('User');
+
+		$data = array(
+			'name' => 'teste'
+		);
+
+		$result = $this->User->save($data);
+
+		$expected = true;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = $this->User->validationErrors;
+		$expected = array();
+
+		$this->assertEqual($emptyErrors, $expected);
+
+		unset($this->User);
+	}
+
+	public function testPreConditionRun()
+	{
+		$this->User =& ClassRegistry::init('User');
+
+		$data = array(
+			'name' => 'teste',
+			'type' => 'admin'
+		);
+
+		$result = $this->User->save($data);
+
+		$expected = false;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = $this->User->validationErrors;
+		
+		$expected = array(
+			'password' => __('Campo obrigatório', true)
+		);
+
+		$this->assertEqual($emptyErrors, $expected);
+
+		unset($this->User);
 	}
 }
