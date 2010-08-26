@@ -1,4 +1,6 @@
 <?php
+	error_reporting(E_ALL);
+	
 App::import('Core', 'Security');
 App::import('Behavior', 'PassValidator');
 
@@ -29,6 +31,20 @@ class OptionalPassword extends CakeTestModel {
 	);
 }
 
+class PasswordPolicy extends CakeTestModel {
+	public $name = 'PasswordPolicy';
+	
+	public $actsAs = array(
+		'PassValidator.PassValidator' => array(
+			'haveConfirm' => true,
+			'minLength'  => 5,
+			'minLetters' => 2,
+			'minNumbers' => 2,
+			'minSpecialChars' => 2
+		)
+	);
+}
+
 class PassValidatorTest extends CakeTestCase {
 
 	public $name = 'PassValidator';
@@ -36,7 +52,8 @@ class PassValidatorTest extends CakeTestCase {
 	public $fixtures = array(
 		'plugin.pass_validator.basic_example',
 		'plugin.pass_validator.without_confirmation',
-		'plugin.pass_validator.optional_password'
+		'plugin.pass_validator.optional_password',
+		'plugin.pass_validator.password_policy'
 	);
 
 	public function startTest()
@@ -216,7 +233,7 @@ class PassValidatorTest extends CakeTestCase {
 		);
 
 		$result =  $this->BasicExample->save($data);
-
+		
 		$expected = false;
 
 		$this->assertEqual($result, $expected);
@@ -264,7 +281,6 @@ class PassValidatorTest extends CakeTestCase {
 		$this->WithoutConfirmation =& ClassRegistry::init('WithoutConfirmation');
 
 		$data = array(
-			'id' => null,
 			'name' => 'teste',
 			'password' => '1234'
 		);
@@ -329,5 +345,84 @@ class PassValidatorTest extends CakeTestCase {
 		$this->assertEqual($emptyErrors, $expected);
 
 		unset($this->OptionalPassword);
+	}
+	
+	public function testOnlyAlphaPasswordConfirm()
+	{
+		$this->PasswordPolicy =& ClassRegistry::init('PasswordPolicy');
+		
+		$data = array(
+			'name' => 'only alpha',
+			'password_confirm' => 'foobar',
+			'password' => Security::hash('foobar', null, true)
+		);
+		
+		$result =  $this->PasswordPolicy->save($data);
+
+		$expected = false;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = $this->PasswordPolicy->validationErrors;
+		$expected = array(
+			'password_confirm' => __('A senha deve ter pelo menos 2 caracteres especiais', true)
+		);
+		
+		$this->assertEqual($emptyErrors, $expected);
+		
+		unset($this->PasswordPolicy);
+	}
+	
+	public function testOnlyNumberPasswordConfirm()
+	{
+		$this->PasswordPolicy =& ClassRegistry::init('PasswordPolicy');
+		
+		$data = array(
+			'name' => 'only numbers',
+			'password_confirm' => '123456',
+			'password' => Security::hash('123456', null, true)
+		);
+		
+		$result =  $this->PasswordPolicy->save($data);
+
+		$expected = false;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = $this->PasswordPolicy->validationErrors;
+		$expected = array(
+			'password_confirm' => __('A senha deve ter pelo menos 2 caracteres especiais', true)
+		);
+		
+		$this->assertEqual($emptyErrors, $expected);
+		
+		unset($this->PasswordPolicy);
+	}
+	
+	
+	public function testNumAlphaPasswordConfirm()
+	{
+		$this->PasswordPolicy =& ClassRegistry::init('PasswordPolicy');
+		
+		$data = array(
+			'name' => 'numbers and alpha',
+			'password_confirm' => '123foo',
+			'password' => Security::hash('123foo', null, true)
+		);
+		
+		$result =  $this->PasswordPolicy->save($data);
+
+		$expected = false;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = $this->PasswordPolicy->validationErrors;
+		$expected = array(
+			'password_confirm' => __('A senha deve ter pelo menos 2 caracteres especiais', true)
+		);
+		
+		$this->assertEqual($emptyErrors, $expected);
+		
+		unset($this->PasswordPolicy);
 	}
 }

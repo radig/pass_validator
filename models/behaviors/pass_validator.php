@@ -1,4 +1,5 @@
 <?php
+	
 App::import('Core', 'Security');
 
 /** 
@@ -26,6 +27,9 @@ class PassValidatorBehavior extends ModelBehavior
 			'haveConfirm' => true,
 			'isSecurityPassword' => true,
 			'minLength' => 4,
+			'minAlpha' => 0,
+			'minNumbers' => 0,
+			'minSpecialChars' => 0,
 			'allowEmpty' => false,
 			'unsetInFailure' => true
 		);
@@ -38,7 +42,10 @@ class PassValidatorBehavior extends ModelBehavior
 		$this->settings['errors'] = array(
 			'required' => __('Campo obrigatório', true),
 			'minLength' => __(sprintf('Insira pelo menos %d caracteres', $this->settings['minLength']), true),
-			'confirm' => __('A confirmação não bate com a senha', true)
+			'confirm' => __('A confirmação não bate com a senha', true),
+			'minAlpha' => __(sprintf('A senha deve ter pelo menos %d caracteres alfabeticos', $this->settings['minAlpha']), true),
+			'minNumbers' => __(sprintf('A senha deve ter pelo menos %d caracteres numericos', $this->settings['minNumbers']), true),
+			'minSpecialChars' => __(sprintf('A senha deve ter pelo menos %d caracteres especiais', $this->settings['minSpecialChars']), true)
 		);
 	}
 	
@@ -91,6 +98,7 @@ class PassValidatorBehavior extends ModelBehavior
 				if(isset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]))
 					unset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]);
 			}
+			
 		}
 		
 		return true;
@@ -130,37 +138,44 @@ class PassValidatorBehavior extends ModelBehavior
 			}
 		}
 		
+		
 		// validações que dependem do campo de confirmação
 		if($this->settings['haveConfirm'])
 		{
+			
 			// campo de confirmação esta vazio
 			if(empty($confirm))
 			{
 				$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['required'];
 			}
-			// valida o tamanho da senha, depende de acesso ao campo de confirmação
-			else if(mb_strlen($confirm) < $this->settings['minLength'])
+			else 
 			{
-				$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['minLength'];
-			}
-			else
-			{
-				$hash = Security::hash($confirm, null, true);
-
-				// valida se o hash da senha é o mesmo da confirmação
-				if($pass != $hash)
+				$policyErrors = $this->validatePasswordPolicy($confirm, $this->settings['fields']['confirm']);
+				
+				if($policyErrors !== true)
 				{
-					$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['confirm'];
+					$errors = array_merge($errors, $policyErrors);
+				}
+				else
+				{
+					$hash = Security::hash($confirm, null, true);
+
+					// valida se o hash da senha é o mesmo da confirmação
+					if($pass != $hash)
+					{
+						$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['confirm'];
+					}
 				}
 			}
 		}
 		// caso o campo de senha não venha em hash, é possível usar o próprio campo
 		else if(!$this->settings['isSecurityPassword'])
 		{
-			// valida o tamanho da senha, depende de acesso ao campo de confirmação
-			if(mb_strlen($pass) < $this->settings['minLength'])
+			$policyErrors = $this->validatePasswordPolicy($pass, $this->settings['fields']['password']);
+				
+			if($policyErrors !== true)
 			{
-				$errors[$this->settings['fields']['password']] = $this->settings['errors']['minLength'];
+				$errors = array_merge($errors, $policyErrors);
 			}
 		}
 		
@@ -176,5 +191,65 @@ class PassValidatorBehavior extends ModelBehavior
 			// retorna o array com os erros
 			return $errors;
 		}
+	}
+	
+	/**
+	 * Metodo responsavel pela validacao da politica de senha
+	 *
+	 * @param string $password senha a ser checada
+	 *
+	 * @return true caso a senha case com todos os requisitos da politica,
+	 *         array com os erros, caso contrario.	 
+	 *
+	 */
+	private function validatePasswordPolicy($password, $field)
+	{
+		$errors = array();
+		
+		// valida o tamanho da senha
+		if(mb_strlen($password) < $this->settings['minLength'])
+		{
+			$errors[$field] = $this->settings['errors']['minLength'];
+		}
+		
+		// valida o minimo de letras na senha
+		if($this->settings['minAlpha'] > 0)
+		{
+			$onlyLetters = mb_ereg_replace('[^a-z]', '', $password, 'i');
+			
+			if(mb_strlen($onlyLetters) < $this->settings['minAlpha'])
+			{
+				$errors[$field] = $this->settings['errors']['minAlpha'];
+			}
+		}
+		
+		// valida o nimimo de numeros na senha
+		if($this->settings['minNumbers'] > 0)
+		{
+			$onlyNumbers = mb_ereg_replace('[^0-9]', '', $password, 'i');
+			
+			if(mb_strlen($onlyNumbers) < $this->settings['minNumbers'])
+			{
+				$errors[$field] = $this->settings['errors']['minNumbers'];
+			}
+		}
+		
+		// valida o minimo de caracteres especiais na senha
+		if($this->settings['minSpecialChars'] > 0)
+		{
+			$onlySpecialChars = mb_ereg_replace('[a-z0-9]', '', $password, 'i');
+			
+			if(mb_strlen($onlySpecialChars) < $this->settings['minSpecialChars'])
+			{
+				$errors[$field] = $this->settings['errors']['minSpecialChars'];
+			}
+		}
+		
+		if(empty($errors))
+		{
+			return true;
+		}
+		
+		return $errors;
 	}
 }
