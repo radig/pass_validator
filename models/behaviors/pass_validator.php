@@ -104,11 +104,10 @@ class PassValidatorBehavior extends ModelBehavior
 			{
 				if(isset($this->model->data[$this->model->name][$this->settings['fields']['password']]))
 					unset($this->model->data[$this->model->name][$this->settings['fields']['password']]);
-				
+					
 				if(isset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]))
 					unset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]);
-			}
-			
+			}	
 		}
 		
 		return true;
@@ -141,7 +140,7 @@ class PassValidatorBehavior extends ModelBehavior
 		}
 		else
 		{
-			if(empty($pass))
+			if(empty($pass) || $pass == Security::hash('', null, true))
 			{
 				$errors[$this->settings['fields']['password']] = $this->settings['errors']['required'];
 			}
