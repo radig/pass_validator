@@ -1,6 +1,7 @@
 <?php
 	
 App::import('Core', 'Security');
+App::import('Lib', 'Set');
 
 /** 
  * @author Cauan Cabral - cauan@radig.com.br
@@ -37,7 +38,7 @@ class PassValidatorBehavior extends ModelBehavior
 		
 		if(!empty($config) && is_array($config))
 		{
-			$this->settings = array_merge($this->settings, $config);
+			$this->settings = Set::merge($this->settings, $config);
 		}
 		
 		$this->settings['errors'] = array(
@@ -65,7 +66,7 @@ class PassValidatorBehavior extends ModelBehavior
 				return true;
 			}
 		}
-
+		
 		if(isset($this->model->data[$this->model->name][$this->settings['fields']['password']]))
 		{
 			$pass = $this->model->data[$this->model->name][$this->settings['fields']['password']];
@@ -131,7 +132,7 @@ class PassValidatorBehavior extends ModelBehavior
 		}
 		
 		// caso seja permitido não preencher o campo de senha
-		if($this->settings['allowEmpty'])
+		if($this->settings['allowEmpty'] === true)
 		{
 			if(empty($pass))
 			{
@@ -209,10 +210,76 @@ class PassValidatorBehavior extends ModelBehavior
 	 */
 	protected function evalConditions( $conditions )
 	{
+		$validOperators = array('and', 'or');
+		
 		foreach($conditions as $input => $value)
 		{
+			// possui subcondições
+			if(is_array($value))
+			{
+				// vetor com a avaliação de cada uma das condições
+				$statuses = array();
+				
+				$type = strtolower($input);
+				
+				// expressao em pre-ordem
+				if(in_array($type, $validOperators))
+				{
+					// inicialização do status final
+					if($type == 'or')
+						$final_status = false;
+				
+					// avalia cada uma das condições internas
+					foreach($value as $subinput => $subvalues)
+						$statuses[] = $this->evalConditions(array($subinput => $subvalues));
+						
+					// equaciona todas as respostas
+					foreach($statuses as $status)
+					{
+						if($type == 'or')
+							$final_status = $final_status || $status;
+						else if($status === false)
+							return false;
+					}
+					
+					return $final_status;
+				}
+				else
+				{
+					// expressao em in-ordem
+					foreach($value as $type => $subvalues)
+					{
+						$type = strtolower($type);
+						
+						if(!in_array($type, $validOperators))
+							continue;
+							
+						// inicialização do status final
+						if($type == 'or')
+							$final_status = false;
+							
+						// avalia cada uma das condições internas
+						foreach($subvalues as $subvalue)
+						{
+							$statuses[] = $this->evalConditions(array($input => $subvalue));
+						}
+							
+						// equaciona todas as respostas
+						foreach($statuses as $status)
+						{
+							if($type == 'or')
+								$final_status = $final_status || $status;
+							else if($status === false)
+								return false;
+						}
+						
+						return $final_status;
+					}
+				}
+			}
+			
 			$field = explode('.', $input);
-
+			
 			if(!isset($this->model->data[$field[0]][$field[1]]) || $this->model->data[$field[0]][$field[1]] != $value)
 			{
 				return false;

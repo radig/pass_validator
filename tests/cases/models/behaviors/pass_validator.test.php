@@ -44,6 +44,22 @@ class PasswordPolicy extends CakeTestModel {
 	);
 }
 
+class PasswordPreCondition extends CakeTestModel {
+	public $name = 'PasswordPreCondition';
+	
+	public $actsAs = array(
+		'PassValidator.PassValidator' => array(
+			'allowEmpty' => false,
+			'haveConfirm' => false,
+			'preConditions' => array(
+				'PasswordPreCondition.type' => array(
+					'or' => array('admin', 'moderator')
+				)
+			)
+		)
+	);
+}
+
 class User extends CakeTestModel {
 	public $name = 'User';
 
@@ -67,6 +83,7 @@ class PassValidatorTest extends CakeTestCase {
 		'plugin.pass_validator.without_confirmation',
 		'plugin.pass_validator.optional_password',
 		'plugin.pass_validator.password_policy',
+		'plugin.pass_validator.password_pre_condition',
 		'plugin.pass_validator.user'
 	);
 
@@ -487,5 +504,45 @@ class PassValidatorTest extends CakeTestCase {
 		$this->assertEqual($emptyErrors, $expected);
 
 		unset($this->User);
+	}
+	
+	public function testPreConditionComboFail()
+	{
+		$User =& ClassRegistry::init('PasswordPreCondition');
+		
+		$data = array(
+			'name' => 'teste',
+			'type' => 'admin'
+		);
+
+		$result = $User->save($data);
+
+		$expected = false;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = $User->validationErrors;
+		
+		$expected = array(
+			'password' => __('Campo obrigatório', true)
+		);
+		
+		$this->assertEqual($emptyErrors, $expected);
+	}
+	
+	public function testPreConditionComboRun()
+	{
+		$User =& ClassRegistry::init('PasswordPreCondition');
+
+		$data = array(
+			'name' => 'teste',
+			'type' => 'admin',
+			'password' => '123123123'
+		);
+
+		$result = $User->save($data);
+		$expected = true;
+		
+		$this->assertEqual($result, $expected);
 	}
 }
