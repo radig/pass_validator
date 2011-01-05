@@ -24,6 +24,28 @@ h2. Considerações
 
 * Os testes unitários cobrem 100% do código, utilize-os para entender melhor o funcionamento do behavior.
 
+h2. Exemplo de Uso
+
+bc. class User extends AppModel {
+	public $actsAs = array(
+		'PassValidator.PassValidator' => array(
+			'fields' => array(
+				'password' => 'password', // nome do campo senha
+				'confirm' => 'password_confirm' // nome do campo de confirmação
+			),
+			'preConditions' => array('User.type' => 'admin'), // pré-condição para validações subsequêntes
+			'haveConfirm' => true, // possui campo sem hash com confirmação da senha
+			'isSecurityPassword' => true, // senha vem em hash 
+			'minLength' => 4, // pelo menos 4 caracteres
+			'minAlpha' => 2, // exige ao menos duas letras
+			'minNumbers' => 1, // exige ao menos um número
+			'minSpecialChars' => 0, // não exige caracter especial
+			'allowEmpty' => true, // não permite senha em branco
+			'unsetInFailure' => true // limpa o campo de senha no caso de falha na validação
+		)
+	);
+}
+
 h2. Licença
 
 O plugin PassValidator é Software Livre e gratuito, distribuido sob a licença MIT pela "Radig Soluções em TI":http://www.radig.com.br
