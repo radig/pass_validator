@@ -1,21 +1,40 @@
 <?php
-	
+/** 
+ * Behavior to make common password validation
+ * 
+ * Code comments in brazilian portuguese.
+ * -----
+ * Behavior que efetua validações comuns em senhas
+ * 
+ * PHP version 5
+ * 
+ * Licensed under The MIT License
+ * Redistributions of files must retain the above copyright notice.
+ * 
+ * @copyright 2010-2011, Radig - Soluções em TI, www.radig.com.br
+ * @link http://www.radig.com.br
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ *
+ * @package radig
+ * @subpackage radig.validators.models.behaviors
+ */
 App::import('Core', 'Security');
 App::import('Lib', 'Set');
-
-/** 
- * @author Cauan Cabral - cauan@radig.com.br
- *
- * @copyright 2009-2010, Radig - Soluções em TI, www.radig.com.br
- * @license MIT
- *
- * @package Radig
- * @subpackage Validators
- */
 class PassValidatorBehavior extends ModelBehavior
 {
+	/**
+	 * Referência para o modelo ligado ao behavior
+	 * 
+	 * @var Model
+	 */
 	protected $model;
 	
+	/**
+	 * Configuração do behavior
+	 * Mescla configurações padrões com as fornecidas pelo usuário
+	 * 
+	 * @see ModelBehavior::setup()
+	 */
 	public function setup(&$model, $config = array())
 	{
 		$this->model =& $model;
@@ -52,8 +71,11 @@ class PassValidatorBehavior extends ModelBehavior
 	}
 	
 	/**
+	 * Validação é feita no callback beforeValidate()
 	 * 
 	 * @see libs/model/ModelBehavior::beforeValidate()
+	 * 
+	 * @return bool $success
 	 */
 	public function beforeValidate(&$model)
 	{
@@ -116,8 +138,8 @@ class PassValidatorBehavior extends ModelBehavior
 	/**
 	 * Método responsável pela execução da validação, baseada nas configurações do behavior
 	 * 
-	 * @param string $pass
-	 * @param string $confirm
+	 * @param string $pass string
+	 * @param string $confirm string
 	 */
 	public function isValidPassword($pass, $confirm = null)
 	{
@@ -206,6 +228,8 @@ class PassValidatorBehavior extends ModelBehavior
 	 * (ou seja, com os dados disponíveis em Model::data )
 	 *
 	 * @param array $conditions
+	 * 
+	 * @return bool $success
 	 */
 	protected function evalConditions( $conditions )
 	{
