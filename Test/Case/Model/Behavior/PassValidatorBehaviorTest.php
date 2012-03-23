@@ -198,7 +198,7 @@ class PassValidatorTest extends CakeTestCase {
 	// }
 
 	/*************
-	* Funcionando
+	* 
 	*/
 	// public function testEmptyPassword()
 	// {
@@ -230,7 +230,7 @@ class PassValidatorTest extends CakeTestCase {
 	// }
 
 	/*************
-	* Funcionando
+	*
 	*/
 	// public function testBogusConfirm()
 	// {
@@ -504,9 +504,7 @@ class PassValidatorTest extends CakeTestCase {
 	// 	unset($this->User);
 	// }
 
-	/*************
-	* Funcionando
-	*/
+	
 	// public function testPreConditionRun()
 	// {
 	// 	$this->User =& ClassRegistry::init('User');
@@ -533,9 +531,7 @@ class PassValidatorTest extends CakeTestCase {
 	// 	unset($this->User);
 	// }
 	
-	/*************
-	* Funcionando
-	*/
+	
 	// public function testPreConditionComboFail()
 	// {
 	// 	$User =& ClassRegistry::init('PasswordPreCondition');
