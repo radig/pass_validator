@@ -1,8 +1,4 @@
 <?php
-// App::import('Core', 'Security');
-App::uses('Security', 'Utility');
-// App::uses('PassValidator', 'Behavior');
-
 class BasicExample extends CakeTestModel {
 	public $name = 'BasicExample';
 
@@ -14,8 +10,7 @@ class WithoutConfirmation extends CakeTestModel {
 
 	public $actsAs = array(
 		'PassValidator.PassValidator' => array(
-			'haveConfirm' => false,
-			'isSecurityPassword' => false
+			'haveConfirm' => false
 		)
 	);
 }
@@ -60,13 +55,31 @@ class PasswordPreCondition extends CakeTestModel {
 	);
 }
 
+class PasswordPreCondition2 extends CakeTestModel {
+	public $name = 'PasswordPreCondition2';
+
+	public $useTable = 'password_pre_conditions';
+	
+	public $actsAs = array(
+		'PassValidator.PassValidator' => array(
+			'allowEmpty' => false,
+			'haveConfirm' => false,
+			'preConditions' => array(
+				'or' => array(
+					'PasswordPreCondition2.type' => 'admin',
+					'PasswordPreCondition2.type' => 'moderator'
+				)
+			)
+		)
+	);
+}
+
 class User extends CakeTestModel {
 	public $name = 'User';
 
 	public $actsAs = array(
 		'PassValidator.PassValidator' => array(
 			'haveConfirm' => false,
-			'isSecurityPassword' => false,
 			'preConditions' => array(
 				'User.type' => 'admin',
 			)
@@ -74,194 +87,200 @@ class User extends CakeTestModel {
 	);
 }
 
-class PassValidatorTest extends CakeTestCase {
-
+class PassValidatorTest extends CakeTestCase
+{
 	public $name = 'PassValidator';
 
+	public $plugin = 'PassValidator';
+
 	public $fixtures = array(
-		'Plugin.PassValidator.BasicExample',
-		'Plugin.PassValidator.WithoutConfirmation',
-		'Plugin.PassValidator.OptionalPassword',
-		'Plugin.PassValidator.PasswordPolicy',
-		'Plugin.PassValidator.PasswordPreCondition',
-		'Plugin.PassValidator.User'
+		'plugin.PassValidator.BasicExample',
+		'plugin.PassValidator.WithoutConfirmation',
+		'plugin.PassValidator.OptionalPassword',
+		'plugin.PassValidator.PasswordPolicy',
+		'plugin.PassValidator.PasswordPreCondition',
+		'plugin.PassValidator.User'
 	);
 
-	public function startTest()
-	{
+	public function setUp() {
 	}
 
-	public function endTest()
-	{
+	public function tearDown() {
+		parent::tearDown();
+		unset($this->BasicExample);
+		ClassRegistry::flush();
 	}
 
-	/**
-	 *
-	 */
 	public function testFindOne()
 	{
 		$this->BasicExample =& ClassRegistry::init('BasicExample');
 
-		// $result = $this->BasicExample->find('first',
-		// 	array('conditions' => array('id' => '1000'))
-		// );
-	
+		$result = $this->BasicExample->find('first',
+			array('conditions' => array('id' => '1000'))
+		);
 		$expected = array(
 			'BasicExample' => array(
-				'id' => 1000,
+				'id' => '1000',
 				'name' => 'joao',
 				'password' => 'senha'
 			)
 		);
 		
-		// $this->assertEqual($result, $expected);
+		$this->assertEquals($result, $expected);
 
 		unset($this->BasicExample);
 	}
 
-	/**
-	 * 
-	 */
-	// public function testFindAll()
-	// {
-	// 	$this->BasicExample =& ClassRegistry::init('BasicExample');
+	public function testFindAll()
+	{
+		$this->BasicExample =& ClassRegistry::init('BasicExample');
 
-	// 	$result = $this->BasicExample->find('all');
+		$result = $this->BasicExample->find('all');
 		
-	// 	$expected = array(
-	// 		array(
-	// 			'BasicExample' => array(
-	// 				'id'  => 1000,
-	// 				'name'  => 'joao',
-	// 				'password'  => 'senha'
-	// 			),
-	// 		),
-	// 		array(
-	// 			'BasicExample' => array(
-	// 				'id'  => 1001,
-	// 				'name'  => 'tonho',
-	// 				'password'  => 'sem_hash'
-	// 			)
-	// 		)
-	// 	);
+		$expected = array(
+			array(
+				'BasicExample' => array(
+					'id'  => 1000,
+					'name'  => 'joao',
+					'password'  => 'senha'
+				),
+			),
+			array(
+				'BasicExample' => array(
+					'id'  => 1001,
+					'name'  => 'tonho',
+					'password'  => 'sem_hash'
+				)
+			)
+		);
 		
-	// 	$this->assertEqual($result, $expected);
+		$this->assertEqual($result, $expected);
 
-	// 	unset($this->BasicExample);
-	// }
+		unset($this->BasicExample);
+	}
 
-	// public function testSaveOne()
-	// {
-	// 	$this->BasicExample =& ClassRegistry::init('BasicExample');
+	public function testSaveOne()
+	{
+		$this->BasicExample =& ClassRegistry::init('BasicExample');
 
-	// 	$data = array(
-	// 		'name' => 'teste',
-	// 		'password_confirm' => '1234',
-	// 		'password' => '1234'
-	// 	);
+		$data = array(
+			'name' => 'teste',
+			'password_confirm' => '1234',
+			'password' => '1234'
+		);
 		
-	// 	$result = $this->BasicExample->save($data);
+		$result = $this->BasicExample->save($data);
+
+		$expected = array('BasicExample' => $data);
+		$expected['BasicExample']['id'] = $this->BasicExample->id;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = $this->BasicExample->validationErrors;
+		$expected = array();
+
+		$this->assertEqual($emptyErrors, $expected);
+
+		unset($this->BasicExample);
+	}
+
+	public function testUpdate()
+	{
+		$this->BasicExample =& ClassRegistry::init('BasicExample');
+
+		$data = array(
+			'id' => 1000,
+			'name' => 'teste'
+		);
+
+		$result = $this->BasicExample->save($data);
+
+		$expected = array('BasicExample' => $data);
+		$expected['BasicExample']['id'] = $this->BasicExample->id;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = $this->BasicExample->validationErrors;
+		$expected = array();
+		$this->assertEqual($emptyErrors, $expected);
+
+		// Atualização com senha
+		$data = array(
+			'id' => 1000,
+			'name' => 'teste',
+			'password' => '12'
+		);
+
+		$result = $this->BasicExample->save($data);
+		$this->assertFalse($result);
+
+		$errors = $this->BasicExample->validationErrors;
+		$expected = array(
+			'password' => __('Insira pelo menos 4 caracteres'),
+			'password_confirm' => __('Campo obrigatório')
+		);
+
+		$this->assertEqual($errors, $expected);
+
+		unset($this->BasicExample);
+	}
+
+	public function testEmptyPassword()
+	{
+		$this->BasicExample =& ClassRegistry::init('BasicExample');
+
+		$data = array(
+			'id' => null,
+			'name' => 'teste',
+			'password_confirm' => '',
+			'password' => ''
+		);
+
+		$result = $this->BasicExample->save($data);
+
+		$expected = false;
+
+		$this->assertEqual($result, $expected);
+
+		$errors = $this->BasicExample->validationErrors;
+
+		$expected = array(
+			'password' => __('Campo obrigatório'),
+			'password_confirm' => __('Campo obrigatório')
+		);
+
+		$this->assertEqual($errors, $expected);
+
+		unset($this->BasicExample);
+	}
+
+	public function testBogusConfirm()
+	{
+		$this->BasicExample =& ClassRegistry::init('BasicExample');
+
+		$data = array(
+			'name' => 'teste',
+			'password_confirm' => '1234',
+			'password' => '4321'
+		);
+
+		$result = $this->BasicExample->save($data);
+
+		$expected = false;
+
+		$this->assertEqual($result, $expected);
+
+		$errors = $this->BasicExample->validationErrors;
 		
-	// 	$expected = true;
+		$expected = array(
+			'password_confirm' => __('A confirmação não bate com a senha')
+		);
 
-	// 	$this->assertEqual($result, $expected);
+		$this->assertEqual($errors, $expected);
 
-	// 	$emptyErrors = $this->BasicExample->validationErrors;
-	// 	$expected = array();
+		unset($this->BasicExample);
+	}
 
-	// 	$this->assertEqual($emptyErrors, $expected);
-
-	// 	unset($this->BasicExample);
-	// }
-
-	// public function testUpdate()
-	// {
-	// 	$this->BasicExample =& ClassRegistry::init('BasicExample');
-
-	// 	$data = array(
-	// 		'id' => 1000,
-	// 		'name' => 'teste'
-	// 	);
-
-	// 	$result = $this->BasicExample->save($data);
-
-	// 	$expected = true;
-
-	// 	$this->assertEqual($result, $expected);
-
-	// 	$emptyErrors = $this->BasicExample->validationErrors;
-	// 	$expected = array();
-
-	// 	$this->assertEqual($emptyErrors, $expected);
-
-	// 	unset($this->BasicExample);
-	// }
-
-	/*************
-	* 
-	*/
-	// public function testEmptyPassword()
-	// {
-	// 	$this->BasicExample =& ClassRegistry::init('BasicExample');
-
-	// 	$data = array(
-	// 		'id' => null,
-	// 		'name' => 'teste',
-	// 		'password_confirm' => '',
-	// 		'password' => ''
-	// 	);
-
-	// 	$result = $this->BasicExample->save($data);
-
-	// 	$expected = false;
-
-	// 	$this->assertEqual($result, $expected);
-
-	// 	$errors = $this->BasicExample->validationErrors;
-
-	// 	$expected = array(
-	// 		'password' => __('Campo obrigatório'),
-	// 		'password_confirm' => __('Campo obrigatório')
-	// 	);
-
-	// 	$this->assertEqual($errors, $expected);
-
-	// 	unset($this->BasicExample);
-	// }
-
-	/*************
-	*
-	*/
-	// public function testBogusConfirm()
-	// {
-	// 	$this->BasicExample =& ClassRegistry::init('BasicExample');
-
-	// 	$data = array(
-	// 		'name' => 'teste',
-	// 		'password_confirm' => '1234',
-	// 		'password' => '4321'
-	// 	);
-
-	// 	$result = $this->BasicExample->save($data);
-
-	// 	$expected = false;
-
-	// 	$this->assertEqual($result, $expected);
-
-	// 	$errors = $this->BasicExample->validationErrors;
-		
-	// 	$expected = array(
-	// 		'password_confirm' => __('A confirmação não bate com a senha')
-	// 	);
-
-	// 	$this->assertEqual($errors, $expected);
-
-	// 	unset($this->BasicExample);
-	// }
-
-	/*************
-	* Funcionando
-	*/
 	public function testShortPassConfirm()
 	{
 		$this->BasicExample =& ClassRegistry::init('BasicExample');
@@ -282,7 +301,7 @@ class PassValidatorTest extends CakeTestCase {
 		$errors = $this->BasicExample->validationErrors;
 
 		$expected = array(
-			'password_confirm' => __('Insira pelo menos 4 caracteres')
+			'password' => __('Insira pelo menos 4 caracteres')
 		);
 
 		$this->assertEqual($errors, $expected);
@@ -290,9 +309,6 @@ class PassValidatorTest extends CakeTestCase {
 		unset($this->BasicExample);
 	}
 
-	/*************
-	* Funcionando
-	*/
 	public function testEmptyConfirmation()
 	{
 		$this->BasicExample =& ClassRegistry::init('BasicExample');
@@ -320,32 +336,30 @@ class PassValidatorTest extends CakeTestCase {
 		unset($this->BasicExample);
 	}
 
-	// public function testWithoutConfirmation()
-	// {
-	// 	$this->WithoutConfirmation =& ClassRegistry::init('WithoutConfirmation');
+	public function testWithoutConfirmation()
+	{
+		$this->WithoutConfirmation =& ClassRegistry::init('WithoutConfirmation');
 
-	// 	$data = array(
-	// 		'name' => 'teste',
-	// 		'password' => '1234'
-	// 	);
+		$data = array(
+			'name' => 'teste',
+			'password' => '1234'
+		);
 
-	// 	$result = $this->WithoutConfirmation->save($data);
+		$result = $this->WithoutConfirmation->save($data);
+		
+		$expected = array('WithoutConfirmation' => $data);
+		$expected['WithoutConfirmation']['id'] = $this->WithoutConfirmation->id;
 
-	// 	$expected = true;
+		$this->assertEqual($result, $expected);
 
-	// 	$this->assertEqual($result, $expected);
+		$emptyErrors = $this->WithoutConfirmation->validationErrors;
+		$expected = array();
 
-	// 	$emptyErrors = $this->WithoutConfirmation->validationErrors;
-	// 	$expected = array();
+		$this->assertEqual($emptyErrors, $expected);
 
-	// 	$this->assertEqual($emptyErrors, $expected);
+		unset($this->WithoutConfirmation);
+	}
 
-	// 	unset($this->WithoutConfirmation);
-	// }
-
-	/*************
-	* Funcionando
-	*/
 	public function testWithoutConfirmationLength()
 	{
 		$this->WithoutConfirmation =& ClassRegistry::init('WithoutConfirmation');
@@ -358,45 +372,41 @@ class PassValidatorTest extends CakeTestCase {
 
 		$result = $this->WithoutConfirmation->save($data);
 
-		$expected = false;
+		$this->assertFalse($result);
 
-		$this->assertEqual($result, $expected);
-
-		$emptyErrors = $this->WithoutConfirmation->validationErrors;
+		$errors = $this->WithoutConfirmation->validationErrors;
 		$expected = array(
 			'password' => __('Insira pelo menos 4 caracteres')
 		);
 
-		$this->assertEqual($emptyErrors, $expected);
+		$this->assertEqual($errors, $expected);
 
 		unset($this->WithoutConfirmation);
 	}
 
-	// public function testOptionalPassword()
-	// {
-	// 	$this->OptionalPassword =& ClassRegistry::init('OptionalPassword');
+	public function testOptionalPassword()
+	{
+		$this->OptionalPassword =& ClassRegistry::init('OptionalPassword');
 
-	// 	$data = array(
-	// 		'name' => 'teste'
-	// 	);
+		$data = array(
+			'name' => 'teste'
+		);
 
-	// 	$result = $this->OptionalPassword->save($data);
+		$result = $this->OptionalPassword->save($data);
 
-	// 	$expected = true;
+		$expected = array('OptionalPassword' => $data);
+		$expected['OptionalPassword']['id'] = $this->OptionalPassword->id;
 
-	// 	$this->assertEqual($result, $expected);
+		$this->assertEqual($result, $expected);
 
-	// 	$emptyErrors = $this->OptionalPassword->validationErrors;
-	// 	$expected = array();
+		$emptyErrors = $this->OptionalPassword->validationErrors;
+		$expected = array();
 
-	// 	$this->assertEqual($emptyErrors, $expected);
+		$this->assertEqual($emptyErrors, $expected);
 
-	// 	unset($this->OptionalPassword);
-	// }
+		unset($this->OptionalPassword);
+	}
 	
-	/*************
-	* Funcionando
-	*/
 	public function testOnlyAlphaPasswordConfirm()
 	{
 		$this->PasswordPolicy =& ClassRegistry::init('PasswordPolicy');
@@ -415,17 +425,14 @@ class PassValidatorTest extends CakeTestCase {
 
 		$emptyErrors = $this->PasswordPolicy->validationErrors;
 		$expected = array(
-			'password_confirm' => __('A senha deve ter pelo menos 2 caracteres especiais')
+			'password' => __('A senha deve ter pelo menos 2 caracteres especiais')
 		);
 		
 		$this->assertEqual($emptyErrors, $expected);
 		
 		unset($this->PasswordPolicy);
 	}
-	
-	/*************
-	* Funcionando
-	*/
+
 	public function testOnlyNumberPasswordConfirm()
 	{
 		$this->PasswordPolicy =& ClassRegistry::init('PasswordPolicy');
@@ -444,7 +451,7 @@ class PassValidatorTest extends CakeTestCase {
 
 		$emptyErrors = $this->PasswordPolicy->validationErrors;
 		$expected = array(
-			'password_confirm' => __('A senha deve ter pelo menos 2 caracteres especiais')
+			'password' => __('A senha deve ter pelo menos 2 caracteres especiais')
 		);
 		
 		$this->assertEqual($emptyErrors, $expected);
@@ -452,9 +459,6 @@ class PassValidatorTest extends CakeTestCase {
 		unset($this->PasswordPolicy);
 	}
 	
-	/*************
-	* Funcionando
-	*/
 	public function testNumAlphaPasswordConfirm()
 	{
 		$this->PasswordPolicy =& ClassRegistry::init('PasswordPolicy');
@@ -473,7 +477,7 @@ class PassValidatorTest extends CakeTestCase {
 
 		$emptyErrors = $this->PasswordPolicy->validationErrors;
 		$expected = array(
-			'password_confirm' => __('A senha deve ter pelo menos 2 caracteres especiais')
+			'password' => __('A senha deve ter pelo menos 2 caracteres especiais')
 		);
 		
 		$this->assertEqual($emptyErrors, $expected);
@@ -482,93 +486,133 @@ class PassValidatorTest extends CakeTestCase {
 	}
 
 
-	// public function testPreConditionSkip()
-	// {
-	// 	$this->User =& ClassRegistry::init('User');
+	public function testPreConditionSkip()
+	{
+		$this->User =& ClassRegistry::init('User');
 
-	// 	$data = array(
-	// 		'name' => 'teste'
-	// 	);
+		$data = array(
+			'name' => 'teste'
+		);
 
-	// 	$result = $this->User->save($data);
+		$result = $this->User->save($data);
 
-	// 	$expected = true;
+		$expected = array('User' => $data);
+		$expected['User']['id'] = $this->User->id;
 
-	// 	$this->assertEqual($result, $expected);
+		$this->assertEqual($result, $expected);
 
-	// 	$emptyErrors = $this->User->validationErrors;
-	// 	$expected = array();
+		$emptyErrors = $this->User->validationErrors;
+		$expected = array();
 
-	// 	$this->assertEqual($emptyErrors, $expected);
+		$this->assertEqual($emptyErrors, $expected);
 
-	// 	unset($this->User);
-	// }
+		unset($this->User);
+	}
 
 	
-	// public function testPreConditionRun()
-	// {
-	// 	$this->User =& ClassRegistry::init('User');
+	public function testPreConditionRun()
+	{
+		$this->User =& ClassRegistry::init('User');
 
-	// 	$data = array(
-	// 		'name' => 'teste',
-	// 		'type' => 'admin'
-	// 	);
+		$data = array(
+			'name' => 'teste',
+			'type' => 'admin'
+		);
 
-	// 	$result = $this->User->save($data);
+		$result = $this->User->save($data);
 
-	// 	$expected = false;
+		$expected = false;
 
-	// 	$this->assertEqual($result, $expected);
+		$this->assertEqual($result, $expected);
 
-	// 	$emptyErrors = $this->User->validationErrors;
+		$emptyErrors = $this->User->validationErrors;
 		
-	// 	$expected = array(
-	// 		'password' => __('Campo obrigatório')
-	// 	);
+		$expected = array(
+			'password' => __('Campo obrigatório')
+		);
 
-	// 	$this->assertEqual($emptyErrors, $expected);
+		$this->assertEqual($emptyErrors, $expected);
 
-	// 	unset($this->User);
-	// }
+		unset($this->User);
+	}
 	
+	public function testPreConditionComboFail()
+	{
+		$this->User =& ClassRegistry::init('PasswordPreCondition');
+		
+		$data = array(
+			'name' => 'teste',
+			'type' => 'admin'
+		);
+
+		$result = $this->User->save($data);
+
+		$expected = false;
+
+		$this->assertEqual($result, $expected);
+
+		$errors = $this->User->validationErrors;
+		
+		$expected = array(
+			'password' => __('Campo obrigatório')
+		);
+		
+		$this->assertEqual($errors, $expected);
+	}
+
+	public function testPreConditionComboIgnorePassword()
+	{
+		$this->User =& ClassRegistry::init('PasswordPreCondition2');
+		
+		$data = array(
+			'name' => 'teste',
+			'type' => 'adm'
+		);
+
+		$result = $this->User->save($data);
+		$expected = array('PasswordPreCondition2' => $data);
+		$expected['PasswordPreCondition2']['id'] = $this->User->id;
+
+		$this->assertEqual($result, $expected);
+
+		$emptyErrors = empty($this->User->validationErrors);
+		
+		$this->assertTrue($emptyErrors);
+	}
 	
-	// public function testPreConditionComboFail()
-	// {
-	// 	$User =& ClassRegistry::init('PasswordPreCondition');
+	public function testPreConditionComboRun()
+	{
+		$this->User =& ClassRegistry::init('PasswordPreCondition');
+
+		$data = array(
+			'name' => 'teste',
+			'type' => 'admin',
+			'password' => '123123123'
+		);
+
+		$result = $this->User->save($data);
 		
-	// 	$data = array(
-	// 		'name' => 'teste',
-	// 		'type' => 'admin'
-	// 	);
-
-	// 	$result = $User->save($data);
-
-	// 	$expected = false;
-
-	// 	$this->assertEqual($result, $expected);
-
-	// 	$emptyErrors = $User->validationErrors;
+		$expected = array('PasswordPreCondition' => $data);
+		$expected['PasswordPreCondition']['id'] = $this->User->id;
 		
-	// 	$expected = array(
-	// 		'password' => __('Campo obrigatório')
-	// 	);
-		
-	// 	$this->assertEqual($emptyErrors, $expected);
-	// }
-	
-	// public function testPreConditionComboRun()
-	// {
-	// 	$User =& ClassRegistry::init('PasswordPreCondition');
+		$this->assertEqual($result, $expected);
+	}
 
-	// 	$data = array(
-	// 		'name' => 'teste',
-	// 		'type' => 'admin',
-	// 		'password' => '123123123'
-	// 	);
+	public function testPreCondition2ComboRun()
+	{
+		$this->User =& ClassRegistry::init('PasswordPreCondition2');
 
-	// 	$result = $User->save($data);
-	// 	$expected = true;
+		$data = array(
+			'name' => 'teste',
+			'type' => 'admin',
+			'password' => '123123123'
+		);
+
+		$result = $this->User->save($data);
 		
-	// 	$this->assertEqual($result, $expected);
-	// }
+		$expected = array('PasswordPreCondition2' => $data);
+		$expected['PasswordPreCondition2']['id'] = $this->User->id;
+		
+		$this->assertEqual($result, $expected);
+	}
 }

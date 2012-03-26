@@ -35,7 +35,6 @@ bc. class User extends AppModel {
 			),
 			'preConditions' => array('User.type' => 'admin'), // pré-condição para validações subsequêntes
 			'haveConfirm' => true, // possui campo sem hash com confirmação da senha
-			'isSecurityPassword' => true, // senha vem em hash 
 			'minLength' => 4, // pelo menos 4 caracteres
 			'minAlpha' => 2, // exige ao menos duas letras
 			'minNumbers' => 1, // exige ao menos um número

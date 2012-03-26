@@ -48,7 +48,6 @@ class PassValidatorBehavior extends ModelBehavior
 			),
 			'preConditions' => array(),
 			'haveConfirm' => true,
-			'isSecurityPassword' => true,
 			'minLength' => 4,
 			'minAlpha' => 0,
 			'minNumbers' => 0,
@@ -91,21 +90,20 @@ class PassValidatorBehavior extends ModelBehavior
 			}
 		}
 		
-		if(isset($this->model->data[$this->model->name][$this->settings['fields']['password']]))
+		if(isset($this->model->data[$this->model->alias][$this->settings['fields']['password']]))
 		{
-			$pass = $this->model->data[$this->model->name][$this->settings['fields']['password']];
+			$pass = $this->model->data[$this->model->alias][$this->settings['fields']['password']];
 		}
 		else
 		{
 			$pass = null;
 		}
 
-		
 		// caso haja um campo referente a confirmação de senha
-		if($this->settings['haveConfirm'] && isset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]))
+		if($this->settings['haveConfirm'] && isset($this->model->data[$this->model->alias][$this->settings['fields']['confirm']]))
 		{
 			// recupera o valor vindo do formulário
-			$confirm = $this->model->data[$this->model->name][$this->settings['fields']['confirm']];
+			$confirm = $this->model->data[$this->model->alias][$this->settings['fields']['confirm']];
 		}
 		// caso contrário
 		else
@@ -126,11 +124,11 @@ class PassValidatorBehavior extends ModelBehavior
 			// caso a configuração force a limpeza dos valores (senha e confirmação)
 			if($this->settings['unsetInFailure'])
 			{
-				if(isset($this->model->data[$this->model->name][$this->settings['fields']['password']]))
-					unset($this->model->data[$this->model->name][$this->settings['fields']['password']]);
+				if(isset($this->model->data[$this->model->alias][$this->settings['fields']['password']]))
+					unset($this->model->data[$this->model->alias][$this->settings['fields']['password']]);
 					
-				if(isset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]))
-					unset($this->model->data[$this->model->name][$this->settings['fields']['confirm']]);
+				if(isset($this->model->data[$this->model->alias][$this->settings['fields']['confirm']]))
+					unset($this->model->data[$this->model->alias][$this->settings['fields']['confirm']]);
 			}	
 		}
 		
@@ -147,33 +145,33 @@ class PassValidatorBehavior extends ModelBehavior
 	{
 		$errors = array();
 		
-		// caso seja uma atualização do registro //(onde a senha já está em hash)
-		if(isset($this->model->data[$this->model->name]['id']))
+		// caso seja uma atualização do registro
+		if(isset($this->model->data[$this->model->alias]['id']) && empty($pass))
 		{
-			// saí da validação
 			return true;
 		}
 		
 		// caso seja permitido não preencher o campo de senha
-		if($this->settings['allowEmpty'] === true)
+		if($this->settings['allowEmpty'] === true && empty($pass))
 		{
-			if(empty($pass))
-			{
-				return true;
-			}
+			return true;
 		}
-		// else
-		// {
-		// 	if(empty($pass) || $pass == AuthComponent::password($pass))
-		// 	{
-		// 		$errors[$this->settings['fields']['password']] = $this->settings['errors']['required'];
-		// 	}
-		// }
+		
+		if(empty($pass))
+		{
+			$errors[$this->settings['fields']['password']] = $this->settings['errors']['required'];
+		}
+
+		$policyErrors = $this->validatePasswordPolicy($pass, $this->settings['fields']['password']);
+		
+		if($policyErrors !== true)
+		{
+			$errors = array_merge($errors, $policyErrors);
+		}
 		
 		// validações que dependem do campo de confirmação
 		if($this->settings['haveConfirm'])
 		{
-			
 			// campo de confirmação esta vazio
 			if(empty($confirm))
 			{
@@ -181,32 +179,11 @@ class PassValidatorBehavior extends ModelBehavior
 			}
 			else 
 			{
-				$policyErrors = $this->validatePasswordPolicy($confirm, $this->settings['fields']['confirm']);
-				
-				if($policyErrors !== true)
+				//valida se a senha é igual a confirmação
+				if($pass != $confirm)
 				{
-					$errors = array_merge($errors, $policyErrors);
+					$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['confirm'];
 				}
-				// else
-				// {
-				// 	$hash = Security::hash($confirm, null, true);
-
-				// 	// valida se o hash da senha é o mesmo da confirmação
-				// 	if($pass != $hash)
-				// 	{
-				// 		$errors[$this->settings['fields']['confirm']] = $this->settings['errors']['confirm'];
-				// 	}
-				// }
-			}
-		}
-		// caso o campo de senha não venha em hash, é possível usar o próprio campo
-		else if(!$this->settings['isSecurityPassword'])
-		{
-			$policyErrors = $this->validatePasswordPolicy($pass, $this->settings['fields']['password']);
-
-			if($policyErrors !== true)
-			{
-				$errors = array_merge($errors, $policyErrors);
 			}
 		}
 		
