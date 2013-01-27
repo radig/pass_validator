@@ -1,4 +1,4 @@
-h1. Plugin PassValidator para CakePHP
+h1. Plugin PassValidator para CakePHP [![Build Status](https://travis-ci.org/radig/pass_validator.png?branch=master)]
 
 Este plugin fornece rotinas para validação de senhas em sistemas que utilizam o AuthComponent como componente de autenticação.
 
