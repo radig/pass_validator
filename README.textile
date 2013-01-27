@@ -14,13 +14,15 @@ O plugin valida a senha enviada via formulário de adição de usuários, consid
 * Existe alguma pré-condição para que haja validação (por exemplo, um tipo de usuário)?
 ** A pré-condição é válida?
 
+h2. Dependências
+
+* CakePHP > 2.x (o branche 1.0 suporta o CakePHP 1.3)
+
 h2. Considerações
 
 * O Plugin consiste de um Behavior, que é executado no callback beforeValidate. Isso quer dizer que toda vez que uma entrada for inserida, ele passará pelo Behavior para avaliação.
 
 * O Behavior possuí algumas mensagens padrão para os erros encontrados. Essas mensagens podem ser traduzidas utilizando a extensão L10n do CakePHP.
-
-* Este plugin foi desenvolvido e testado com o CakePHP 1.3
 
 * Os testes unitários cobrem 100% do código, utilize-os para entender melhor o funcionamento do behavior.
 

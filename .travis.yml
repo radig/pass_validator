@@ -1,0 +1,18 @@
+language: php
+
+php:
+  - 5.3
+  - 5.4
+
+env:
+  - CAKE_VERSION=master
+
+before_script:
+  - git clone --depth 1 git://github.com/cakephp/cakephp ../cakephp && cd ../cakephp && git checkout $CAKE_VERSION
+  - cp -R ../pass_validator plugins/PassValidator
+
+script:
+  - ./lib/Cake/Console/cake test PassValidator AllTests
+
+notifications:
+  email: false
