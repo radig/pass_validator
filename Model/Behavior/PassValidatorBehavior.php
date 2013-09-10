@@ -6,17 +6,17 @@
  * -----
  * Behavior que efetua validações comuns em senhas
  *
- * PHP version 5.3
+ * PHP version > 5.3
  *
  * Licensed under The MIT License
  * Redistributions of files must retain the above copyright notice.
  *
- * @copyright 2010-2012, Radig - Soluções em TI, www.radig.com.br
+ * @copyright Radig - Soluções em TI, www.radig.com.br
  * @link http://www.radig.com.br
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  *
- * @package radig
- * @subpackage radig.validators.models.behaviors
+ * @package radig.PassValidator
+ * @subpackage Model.Behavior
  */
 
 App::uses('Security', 'Utility');
@@ -99,20 +99,24 @@ class PassValidatorBehavior extends ModelBehavior {
 
 		$success = $this->isValidPassword($pass, $confirm);
 
-		if ($success !== true) {
-			// adiciona os erros encontrados no atributo validationErrors do modelo atual
-			$model->validationErrors = array_merge($model->validationErrors, $success);
+		if ($success === true) {
+			return true;
+		}
+		
+		// adiciona os erros encontrados no atributo validationErrors do modelo atual
+		$model->validationErrors = array_merge($model->validationErrors, $success);
 
-			// caso a configuração force a limpeza dos valores (senha e confirmação)
-			if ($this->settings['unsetInFailure']) {
-				if (isset($model->data[$model->alias][$this->settings['fields']['password']])) {
-					unset($model->data[$model->alias][$this->settings['fields']['password']]);
-				}
+		// caso a configuração force a limpeza dos valores (senha e confirmação)
+		if (!$this->settings['unsetInFailure']) {
+			return true;
+		}
 
-				if (isset($model->data[$model->alias][$this->settings['fields']['confirm']])) {
-					unset($model->data[$model->alias][$this->settings['fields']['confirm']]);
-				}
-			}
+		if (isset($model->data[$model->alias][$this->settings['fields']['password']])) {
+			unset($model->data[$model->alias][$this->settings['fields']['password']]);
+		}
+
+		if (isset($model->data[$model->alias][$this->settings['fields']['confirm']])) {
+			unset($model->data[$model->alias][$this->settings['fields']['confirm']]);
 		}
 
 		return true;
@@ -194,7 +198,7 @@ class PassValidatorBehavior extends ModelBehavior {
 				// expressao em pre-order
 				if (in_array($type, $validOperators)) {
 					// inicialização do status final
-					if($type == 'or') {
+					if ($type == 'or') {
 						$final_status = false;
 					}
 
@@ -207,7 +211,7 @@ class PassValidatorBehavior extends ModelBehavior {
 					foreach ($statuses as $status) {
 						if ($type == 'or') {
 							$final_status = $final_status || $status;
-						} else if($status === false) {
+						} else if ($status === false) {
 							return false;
 						}
 					}
@@ -305,7 +309,7 @@ class PassValidatorBehavior extends ModelBehavior {
 			$errors[$field] = $this->settings['errors']['required'];
 		}
 
-		if(empty($errors)) {
+		if (empty($errors)) {
 			return true;
 		}
 
