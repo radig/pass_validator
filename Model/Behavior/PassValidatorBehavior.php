@@ -72,12 +72,12 @@ class PassValidatorBehavior extends ModelBehavior {
 	/**
 	 * Validação é feita no callback beforeValidate()
 	 *
-	 * @see Cake/lib/Model/ModelBehavior::beforeValidate()
+	 * @see Cake/Model/ModelBehavior::beforeValidate()
 	 *
 	 * @return bool $success
 	 */
-	public function beforeValidate(Model $model) {
-		parent::beforeValidate($model);
+	public function beforeValidate(Model $model, $options = array()) {
+		parent::beforeValidate($model, $options);
 		$this->model = $model;
 
 		if (!empty($this->settings['preConditions']) && is_array($this->settings['preConditions'])) {
